@@ -1,0 +1,97 @@
+Seguendo gli studi sviluppati in \cite{praticalguide}, vengono presentate le scelte progettuali fatte per l'implementazione e l'uso del \textit{reservoir} e del \textit{readout}.
+\section{Inizializzazione del Reservoir}
+Dato il modello delle RNN, il reservoir è definito dalla tupla $(\mathbf{W_{in}},\mathbf{W}, \alpha)$. Le matrici dei pesi delle connessioni e dei pesi di input sono generate in modo random secondo dei parametri di cui si discute in seguito, e il leaking rate $\alpha$ è selezionato come parametro libero.\\
+Analogamente a quanto viene fatto nella letteratura, quelli che per semplicità vengono chiamati parametri globali in questa sezione potrebbero essere chiamati iper-parametri, poiché non rappresentano direttamente i pesi delle connessioni ma regolano la loro distribuzione.\\
+I parametri globali del reservoir sono: la dimensione $N_r$,la sparsità, ovvero la distribuzione degli elementi non nulli, e il raggio spettrale di $\mathbf{W}$; lo \textit{scaling} di $\mathbf{W_{in}}$ ; ed il \textit{leaking rate} $\alpha$.
+I dettagli di ciascuno di queste scelte di design vengono illustrate in seguito.
+Per inizializzare un reservoir si  invoca la funzione \textit{weightMatrix()} con gli opportuni parametri.\\
+\\
+\lstinputlisting[frame=single]{/home/eleonora/Scrivania/tesi/weightMatrix.m}
+
+\subsection{Dimensione del Reservoir}
+Un parametro fondamentale per il modello \ref{attivazioneesn} è $N_r$, il numero delle unità del reservoir. In genere più è grande il reservoir, migliore è la performance ottenuta, tenendo conto delle tecniche di regolarizzazione appropriate per evitare l'overfitting. Poiché allenare ed applicare le ESN è computazionalmente economico rispetto alle altre reti neurali ricorrenti, non è insolito trovare dei reservoir di dimensioni dell'ordine di $10^4$.\\
+Più è grande lo spazio dei segnali del reservoir $\mathbf{x}(n)$, più facile è trovare una combinazione lineare dei segnali per approssimare $\mathbf{y}_{target}(n)$. Il reservoir può essere troppo grande quando il task è banale oppure quando non si hanno molti dati disponibili, ad esempio $T< 1+ N_u +N_r$.\\
+Generalmente nell'ambito accademico la dimensione del reservoir viene limitata per convenienza e per compatibilità di risultati; inoltre buoni parametri sono trasferibili a reservoir di dimensioni maggiori,quindi può essere conveniente selezionare i parametri globali con reservoir ridotti e poi trasferirli a quelli più grandi.\\
+Un limite inferiore per la dimensione del reservoir può essere considerato il numero di valori reali che il reservoir deve ricordare dall'input per realizzare con successo il task. Il massimo numero di valori conservati in una ESN non può essere superiore di $N_r$.
+il parametro che indica la dimensione del Reservoir  passato alla funzione weightMatrix() è $nr$.
+
+\subsection{Sparsità del Reservoir}
+Nelle prime pubblicazioni riguardanti le ESN si raccomanda di realizzare reservoir con connessioni sparse, cioè con le matrici $\mathbf{W_{in}}$ e $\mathbf{W}$ aventi la maggior parte degli elementi uguali a zero.
+In generale questo parametro non influenza la performance così tanto ed ha una bassa priorità nell'ottimizzazione, come viene dimostrato anche in \cite{Markovianfactor:paper}.\\
+La sparsità fa si che l'aggiornamento della matrice sia più rapido, velocizzando quindi la computazione. Matrici densamente connesse potrebbero rallentare la computazione, soprattutto in base al numero di unità di attivazione considerate, quando la dimensione del reservoir è grande si può decidere di generare $\mathbf{W_{in}}$ e $\mathbf{W}$ secondo la stesso tipo di distribuzione ma una rispettivamente densa e sparsa. In particolare nell'implementazione fornita si può scegliere la distribuzione tra quella uniforme e quella normale associando, rispettivamente, le stringhe '\textit{ud}' e '\textit{nd}' al parametro \textit{dist}. Inoltre si può esprimere la densità delle connessioni del reservoir attraverso il parametro $\mathit{density\_con}$,il cui valore va da $0$ a $1$, dove con $1$ si indica una matrice completamente connessa. 
+
+\subsection{Raggio spettrale}
+Uno dei principali parametri delle ESN è il raggio spettrale della matrice dei pesi delle connessioni, cioè il massimo tra i valori assoluti degli autovalori della matrice. Questo parametro scala la matrice $\mathbf{W}$, o visto alternativamente scala l'ampiezza della distribuzione dei parametri diversi da zero.\\
+Viene generata in modo random la matrice \textbf{W}, viene calcolato il suo raggio spettrale $\rho(\mathbf{W})$, infine \textbf{W} viene divisa per $\rho(\mathbf{W})$ così da ottenere una matrice con raggio spettrale unitario da poter moltiplicare per il raggio spettrale desiderato. Si ricorda che questo ultimo deve essere minore di uno affinché valga la \textit{Echo State Property}.\\
+Come principio guida, $\rho(\mathbf{W})$ dovrebbe essere scelto grande per i task per i quali è richiesto una storia dell'input vasta , piccolo per i task il cui output corrente dipende dalla storia recente.
+Il valore del raggio spettrale desiderato è espresso dal parametro \textit{rho}.
+
+\subsection{Input scaling}
+Lo scaling dei pesi della matrice di input è un altro valore chiave da ottimizzare in una Echo State Network. Per $\mathbf{W_{in}}$ generate con distribuzione uniforme generalmente ci si riferisce all'\textit{input scaling a} come al modulo degli estremi dell'intervallo $[-a;a]$ dal quale vengono selezionati i valori di $\mathbf{W_{in}}$; per le matrici generate con distribuzione normale si prende la deviazione standard come misura di scaling.\\
+In questa implementazione, per avere un numero esiguo di parametri liberi, tutte le colonne di $\mathbf{W_{in}}$ vengono scalate insieme in base ad un unico valore. In alternativa si può ottimizzare separatamente il valore di \textit{input scaling} relativo alla colonna del \textit{bias}, oppure si possono scalare le colonne di $\mathbf{W_{in}}$ separatamente in base a come queste contribuiscono al task. A seconda delle impostazioni il numero di parametri liberi per $\mathbf{W_{in}}$  varia da 1 a $N_u + 1$.\\
+Nelle prime pubblicazioni venne suggerito di scalare e traslare i dati di input, ottimizzando queste operazioni. Lo stesso effetto può essere raggiunto scalando i pesi di input e il \textit{bias}, rispettivamente. Queste operazioni sono molto utili poiché permettono di avere dei valori limitati per i dati di input. \\
+Per task molto lineari $\mathbf{W_{in}}$ dovrebbe essere piccolo, permettendo alle unità di operare intorno allo zero dove la funzione di attivazione $tanh$, funzione di attivazione scelta in questa implementazione, è quasi lineare. Par  $\mathbf{W_{in}}$ con valori grandi , le unità si saturano facilmente vicino al loro valore $-1$ o $1$, agendo in modo non lineare. È chiaro che l'\textit{input scaling}, insieme al valore $\rho(\mathbf{W})$, determina quanto lo stato corrente $\mathbf{x}(t)$ dipende dall'input corrente $\mathbf{u}(t)$ e quanto dallo stato precedente  $\mathbf{x}(t-1)$. Nell'implementazione il valore dell'input scaling viene indicato da $\mathit{scale\_in}$.
+
+\subsection{Leaking Rate}
+La variabile \textit{alpha} esprime il valore del \textit{leaking rate} come visto in \ref{attivazionelr} ed indica la velocità con cui vengono aggiornate le dinamiche del reservoir. Sebbene questo parametro viene maggiormente utilizzato nel calcolo dello stato del reservoir viene presentato qui  poiché si deve tener conto di questo valore nel momento in cui viene riscalata la matrice dei pesi $\mathbf{W}$ come dimostrato in \cite{leakingintegrator}. 
+
+
+
+\section{Calcolo dello stato del reservoir}
+Per calcolare lo stato del reservoir è necessario invocare la funzione, riportata sotto, \textit{setReservoir()}. Questa prende come parametri le informazioni relative al task e le matrici che rappresentano il reservoir, inizializzate come espresso sopra.
+Può prendere in ingresso dei parametri opzionali che rappresentano rispettivamente il valore del \textit{leaking rate} e dell'\textit{input bias}. Viene applicata la \ref{attivazionelr} per il calcolo dello stato del reservoir e viene eliminato il numero di stati transient  come espresso nella definizione del task.\\
+Ciò significa che i valori iniziali $\mathbf{x}(n)$ non vengono considerati per l'allenamento del readout e vengono scartati in quanto influenzati dallo stato iniziale $\mathbf{x}(0)$, che tipicamente è $\mathbf{x}(0)=0$. Questo introduce uno stato iniziale non naturale difficile da raggiungere quando la rete comincia ad adattarsi al task. Il numero di step da saltare dipende dalla memoria della rete e tipicamente è dell'ordine di decine di centinaia. Tuttavia se il task è composto da molte sequenze corte il transient iniziale è la normale modalità di lavoro della ESN ed in questi casi eliminare gli stati iniziali può essere pericoloso.\\
+Invece questo aspetto diventa fondamentale se si vogliono rendere indipendenti le sequenze, ad esempio quelle associate a fold diversi.
+\lstinputlisting[frame=single]{/home/eleonora/Scrivania/tesi/setReservoir.m}
+
+
+\section{Allenamento del Readout}
+Per questa implementazione si prende in considerazione un readout lineare, senza connessioni di \textit{feedback}.\\
+Un readout lineare può essere descritto con la seguente equazione
+\begin{equation} \label{eq:readout}
+\mathbf{Y}= \mathbf{W_{out}X}
+\end{equation}
+dove:
+\begin{itemize}
+	\item $\mathbf{Y} \in \mathbb{R}^{N_y*T}$ sono tutti gli $\mathbf{y}(n)$;
+	\item $\mathbf{X} \in \mathbb{R}^{(1+N_r)*T}$ sono tutti gli $[\mathbf{x}(n);1]$
+	\item $\mathbf{W_{out}}$ sono i pesi ottimi che minimizzano l'errore tra $\mathbf{y}(n)$ e $\mathbf{y_{target}}(n)$
+\end{itemize}
+Nel caso in cui si volessero connettere i pesi di input al readout si avrebbe la matrice $\mathbf{X} \in \mathbb{R}^{(1+N_u+N_r)*T}$, formata da tutti i $[\mathbf{x}(n);\mathbf{u}(n);1]$.\\
+Trovare i pesi ottimi $\mathbf{W_{out}}$ che minimizzino l'errore tra $\mathbf{y}(n)$ e $\mathbf{y_{target}}(n)$ consiste nel risolvere un sistema di equazioni lineari del tipo:
+\begin{equation} \label{eq:readout_targ}
+\mathbf{Y_{target}}= \mathbf{W_{out}X}
+\end{equation}
+Per allenare il readout si deve invocare la funzione $\mathit{train\_readout()}$, nelle sottosezioni successive vengono illustrati due approcci diversi per la risoluzione del sistema.
+
+\subsection{Regolarizzazione di Tikhonov}
+La più diffusa e stabile soluzione per \ref{eq:readout_targ} in questo contesto è la regolarizzazione di Tikhonov o Ridge Regression, in formula:
+\begin{equation} \label{eq:tikhonov}
+\mathbf{W_{out}}= \mathbf{Y_{target}X^T} (\mathbf{XX^T} + \beta\mathbf{I})^{-1}
+\end{equation}
+dove $\beta$ è il coefficiente di regolarizzazione.\\
+Per misurare la qualità della soluzione prodotta dall'allenamento è consigliabile controllare i pesi ottenuti di $\mathbf{W_{out}}$, grandi pesi indicano che $\mathbf{W_{out}}$ amplifica piccole differenze tra le dimensioni di $\mathbf{x}(t)$ e può essere molto sensibile nelle situazioni diverse dalle esatte condizioni nelle quali la rete è stata allenata. Questo problema si accentua nel caso in cui la rete riceve il suo output come successivo input.\\
+Per contrastare questi effetti viene introdotta la parte di regolarizzazione  $\beta\mathbf{I}$. Per illustrare l'equazione risolta con la \textit{ridge regression} viene considerato il RMSE (\textit{root mean squared error}) come misura di errore:
+\begin{equation} \label{eq:tikhonov2}
+\mathbf{W_{out}}= \underset{\mathbf{W_{out}}}{\arg\min} \frac{1}{N_y} \sum\limits_{i=1}^{N_y} \biggl( \sum\limits_{n=1}^{T} (y_i(n)-y_{i_{target}}(n))^2 + \beta \| w_{i_{out}} \|^2 \biggr)
+\end{equation}
+con $w_{i_{out}}$ che indica la \textit{i-esima} riga di $\mathbf{W_{out}}$ e $\|\cdot\|$ la norma euclidea. È evidente il compromesso che si ha tra avere un basso \textit{training error} e pesi di output piccoli, ed è regolato proprio dal parametro di regolarizzazione $\beta$.
+Il coefficiente di regolarizzazione ottimo $\beta$ dipende dall'istanza di $\mathbf{W}$, quindi è buona norma scegliere questo parametro attraverso la validazione.\\
+Settare $\beta$ uguale a \textit{zero} rimuove la regolarizzazione: la funzione in \ref{eq:tikhonov2} diventa uguale al semplice calcolo del RMSE(\textit{root mean squared error}),
+rendendo la regolarizzazione di Tikhononov una generalizzazione della regressione lineare.\\
+La soluzione con $\beta=0 $ diventa:
+\begin{equation} \label{eq:linearregression}
+\mathbf{W_{out}}= \mathbf{Y_{target}X^T} (\mathbf{XX^T})^{-1}
+\end{equation}
+Nella pratica, tuttavia, fissare $\beta=0 $ spesso causa instabilità numerica quando si inverte $(\mathbf{XX^T})$ in \ref{eq:linearregression}, è per questo che si raccomanda di usare per la selezione di $\beta$ una scala logaritmica che non raggiunge lo zero o di usare la pseudoinversa invece che l'inversa come mostrato di seguito.
+
+\subsection{Soluzione con pseudoinversa}
+Una soluzione semplice per la risoluzione del sistema visto prima è:
+\begin{equation} \label{eq:pseudoinversa}
+\mathbf{W_{out}}= \mathbf{Y_{target}X^+}
+\end{equation}
+dove $\mathbf{X^+}$ è la pseudoinversa di Moore-Penrose di $\mathbf{X}$. Se $\mathbf{XX^T}$ è invertibile questa formula diventa uguale alla \ref{eq:linearregression}, ma funziona anche quando non lo è.\\
+Tuttavia, ha un elevato costo in memoria per grandi matrici $\mathbf{X}$, dunque si deve limitare la dimensione del reservoir e/o il numero di esempi di training $T$.
+Poichè non si ha la regolarizzazione il sistema di equazioni lineari \ref{eq:readout_targ} deve essere sovraddeterminato, cioè $ 1+N_u+ N_r << T$. In altre parole, il task deve essere difficile in relazione alla capacità del reservoir così che non avvenga l'\textit{overfitting}.\\
+In molte librerie viene fornita una implementazione della pseudoinversa, tuttavia ogni implementazione varia nella precisione, nell'efficienza computazionale e nella stabilità numerica. Per task di alta precisione, si deve controllare se la regressione $\mathbf{(Y_{target} -W_{out}X)X^+}$ sull'errore $\mathbf{Y_{target} -W_{out}X}$ è effettivamente uguale a zero, e aggiungerla a $\mathbf{W_{out}}$ nel caso non lo sia. Questo trucco computazionale non dovrebbe funzionare in teoria ma a volte funziona in partica in Matlab, probabilmente a causa di qualche ottimizzazione interna.
+
