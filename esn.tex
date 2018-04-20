@@ -1,8 +1,8 @@
 
 \section{Il modello di base}
-Come evidenziato nella sezione \ref{sec:rnn} le diverse problematiche relative all'allenamento delle reti neurali ricorrenti hanno portato allo sviluppo del Reservoir Computing (RC). L'approccio del Reservoir Computing differisce dalla tecnica di apprendimento citata in precedenza perché crea una separazione concettuale e computazionale tra una parte dinamica chiamata  \textit{reservoir} ed una parte chiamata \textit{readout}. Il \textit{reservoir} è una  rete neurale ricorrente che opera come funzione di espansione non lineare, mentre il \textit{readout} produce l'output desiderato dall'espansione. \\
+Come evidenziato nella sezione \ref{sec:rnn} le diverse problematiche relative all'allenamento delle reti neurali ricorrenti hanno portato allo sviluppo del \textit{Reservoir Computing }. L'approccio del \textit{Reservoir Computing} differisce dalla tecnica di apprendimento citata in precedenza perché crea una separazione concettuale e computazionale tra una parte dinamica chiamata  \textit{reservoir} ed una parte chiamata \textit{readout}. Il \textit{reservoir} è una  rete neurale ricorrente che opera come funzione di espansione non lineare, mentre il \textit{readout} produce l'output desiderato dall'espansione. \\
 
-Una Echo state Network consiste in un livello di input di $N_u$ unità, un insieme di $N_r$ unità nascoste che compongono il suddetto \textit{reservoir} e un livello di output di $N_y$ unità tipicamente lineari e non ricorrenti che formano il \textit{readout}.
+Una \textit{Echo State Network} consiste in un livello di input di $N_u$ unità, un insieme di $N_r$ unità nascoste che compongono il suddetto \textit{reservoir} e un livello di output di $N_y$ unità tipicamente lineari e non ricorrenti che formano il \textit{readout}.
 Le equazioni che descrivono la computazione sviluppata da una ESN sono:
 \begin{equation}\label{attivazioneesn}
 \mathbf{x}(\mathit{t})= \mathit{f}_\mathit{x} (\mathbf{u}(\mathit{t}), \mathbf{x}(\mathit{t} - 1)) = f(\mathbf{W_{in}}u(\mathit{t}) + \mathbf{Wx}(\mathit{t - 1} ) + \mathbf{b} )
@@ -10,7 +10,7 @@ Le equazioni che descrivono la computazione sviluppata da una ESN sono:
 \begin{equation}\label{output}
 \mathbf{y}(\mathit{t})=\mathit{f_{y}}(\mathbf{x}(\mathit{t}) )= \mathbf{W_{out}}\mathbf{x}(\mathit{t})
 \end{equation}
-La separazione concettuale che caratterizza le echo state network è basata sulla comprensione dei diversi scopi che assumono $\mathit{f_{x}}$ e $\mathit{f_{y}}$:
+La separazione concettuale che caratterizza le \textit{echo state network} è basata sulla comprensione dei diversi scopi che assumono $\mathit{f_{x}}$ e $\mathit{f_{y}}$:
 \begin{itemize}
 	\item $\mathit{f_{x}}$ espande la storia dell'input $\mathbf{u}\mathit{(t)}, \mathbf{u}\mathit{(t-1)}$,... in uno spazio degli stati del \textit{reservoir}  $\mathbf{x}\mathit{(t)} \in \mathds{R}^{N_x}$,
 	\item mentre $\mathit{f_{y}}$ combina i segnali ricevuti dai neuroni $\mathbf{x}(\mathit{t})$ per ottenere gli output attesi $\hat{\mathbf{y}}(\mathit{t})$ .\\
@@ -21,7 +21,7 @@ La principale caratteristica del RC e quindi delle ESN è che la parte ricorrent
 \begin{figure}[h!]
 	\centering 
 	\includegraphics[width=0.7\linewidth]{immagini/RC.png}
-	\caption{Reservoir Computing e allenamento del readout.}
+	\caption{\textit{Reservoir Computing} e allenamento del readout.}
 	\label{fig:RC}
 \end{figure}
 
@@ -89,11 +89,11 @@ Jaeger ha fornito due condizioni, rispettivamente necessaria e sufficiente, affi
 \begin{equation}\label{raggiospettrale}
 \rho(\mathbf{W})<1
 \end{equation}
-Se questa condizione viene violata, il reservoir è localmente asintoticamente instabile nello stato $\mathbf{0} \in \mathbb{R}^{N_r}$ e la echo state property non può essere garantita se la sequenza nulla è un input ammissibile per il sistema.\\
+Se questa condizione viene violata, il \textit{reservoir} è localmente asintoticamente instabile nello stato $\mathbf{0} \in \mathbb{R}^{N_r}$ e la \textit{echo state property} non può essere garantita se la sequenza nulla è un input ammissibile per il sistema.\\
 La condizione sufficiente per la validità della proprietà è che il massimo valore singolare di \textbf{W} sia minore di uno:
 \begin{equation}\label{raggiospettrale2}
 \sigma(\mathbf{W}) <1
 \end{equation}
-Ciò assicura la stabilità globale del sistema e la presenza di "stati echo", garantendo così la echo state property.\\
+Ciò assicura la stabilità globale del sistema e la presenza di "stati echo", garantendo così la \textit{echo state property}.\\
 Una caratteristica molto importante evidenziata in \cite{Markovianfactor:paper}  è la contrattività delle dinamiche dello stato.\\
 La contratività della funzione di transizione dello stato $\mathit{f_x}$ è una condizione sufficiente ma non necessaria per garantire la ESP.

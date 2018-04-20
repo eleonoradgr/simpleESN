@@ -13,6 +13,7 @@
 \usepackage{subcaption}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{float}
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \definecolor{mymauve}{rgb}{0.58,0,0.82}
@@ -47,7 +48,7 @@
 
 \usepackage{amsmath}
 
-\title{Semplice implementazione di una\\ Echo State Network}
+\title{Implementazione di una\\ Echo State Network}
 \author{Eleonora Di Gregorio}
 
 
@@ -74,7 +75,7 @@
 	\end{center}
 	\vspace{12mm}
 	\begin{center}
-		{\LARGE{\bf Semplice implementazione di una}}\\
+		{\LARGE{\bf Implementazione di una}}\\
 		\vspace{3mm}
 		{\LARGE{\bf Echo State Network}}\\
 		\vspace{12mm} {\large{\bf Esperienze di programmazione}}
@@ -84,7 +85,7 @@
 	\noindent
 	\begin{minipage}[t]{0.47\textwidth}
 		{\large{\bf Professore:\\
-				Prof. Romani\\}}
+				Francesco Romani\\}}
 	\end{minipage}
 	\hfill
 	\begin{minipage}[t]{0.47\textwidth}\raggedleft
@@ -94,8 +95,8 @@
 	\end{minipage}
 	\vspace{20mm}
 	\begin{center}
-		{\large{\bf Sessione\\%inserire il numero della sessione in cui ci si laurea
-				Anno Accademico }}%inserire l'anno accademico a cui si è iscritti
+		{\large{\bf Aprile\\%inserire il numero della sessione in cui ci si laurea
+				A.A. 2017/2018 }}%inserire l'anno accademico a cui si è iscritti
 	\end{center}
 \end{titlepage}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,11 +127,13 @@
 %%% EVENTUALE
 \appendix
 \chapter{Codice}
-
-\begin{verbatim}
-num(0).
-num(s(X)) :- num(X).
-\end{verbatim}
-
-
+\lstinputlisting[frame=single]{code/setReservoir.m}
+\lstinputlisting[frame=single]{code/getTarget.m}
+\lstinputlisting[frame=single]{code/train_readout.m}
+\lstinputlisting[frame=single]{code/test_readout.m}
+\lstinputlisting[frame=single]{code/Tasks.m}
+\lstinputlisting[frame=single]{code/istask.m}
+\lstinputlisting[frame=single]{code/generateTask.m}
+\lstinputlisting[frame=single]{code/ESNtrain.m}
+\lstinputlisting[frame=single]{code/ESNtest.m}
 \end{document}
